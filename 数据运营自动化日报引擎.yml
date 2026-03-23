@@ -1,0 +1,249 @@
+app:
+  description: ''
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  icon_type: emoji
+  mode: workflow
+  name: 游戏运营自动化日报引擎
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/gemini:0.7.19@8eada8d6c655509364283527db67e47a4603021cda289f571af10e217459cf49
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 50
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: code
+      id: 1774273392060-source-1774273429562-target
+      source: '1774273392060'
+      sourceHandle: source
+      target: '1774273429562'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: llm
+      id: 1774273429562-source-1774273928533-target
+      source: '1774273429562'
+      sourceHandle: source
+      target: '1774273928533'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: end
+      id: 1774273928533-source-1774274643201-target
+      source: '1774273928533'
+      sourceHandle: source
+      target: '1774274643201'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        selected: false
+        title: 开始
+        type: start
+        variables:
+        - default: ''
+          hint: ''
+          label: csv_data
+          options: []
+          placeholder: ''
+          required: true
+          type: paragraph
+          variable: csv_data
+      height: 108
+      id: '1774273392060'
+      position:
+        x: 80
+        y: 282
+      positionAbsolute:
+        x: 80
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "import csv\nfrom io import StringIO\nfrom collections import defaultdict\n\
+          \ndef main(csv_data: str) -> dict:\n    if not csv_data:\n        return\
+          \ {\"analyzed_result\": \"未获取到数据\"}\n    \n    # 解析 CSV\n    f = StringIO(csv_data.strip())\n\
+          \    reader = csv.DictReader(f)\n    \n    daily_data = defaultdict(lambda:\
+          \ {\"DAU\": 0, \"New_Users\": 0, \"Revenue\": 0.0})\n    \n    # 汇总数据\n\
+          \    for row in reader:\n        if \"日期\" not in row or not row[\"日期\"\
+          ]:\n            continue\n        date = row[\"日期\"]\n        try:\n   \
+          \         daily_data[date][\"DAU\"] += int(row.get(\"DAU\") or 0)\n    \
+          \        daily_data[date][\"New_Users\"] += int(row.get(\"新增用户\") or 0)\n\
+          \            daily_data[date][\"Revenue\"] += float(row.get(\"充值金额(元)\"\
+          ) or 0)\n        except Exception:\n            pass\n            \n   \
+          \ if len(daily_data) < 2:\n        return {\"analyzed_result\": \"数据不足，无法计算环比\"\
+          }\n        \n    # 计算环比\n    sorted_dates = sorted(daily_data.keys(), reverse=True)\n\
+          \    today = sorted_dates[0]\n    yesterday = sorted_dates[1]\n    \n  \
+          \  today_dau = daily_data[today][\"DAU\"]\n    yesterday_dau = daily_data[yesterday][\"\
+          DAU\"]\n    dau_mom = ((today_dau - yesterday_dau) / yesterday_dau) * 100\
+          \ if yesterday_dau else 0\n    \n    today_rev = daily_data[today][\"Revenue\"\
+          ]\n    yesterday_rev = daily_data[yesterday][\"Revenue\"]\n    rev_mom =\
+          \ ((today_rev - yesterday_rev) / yesterday_rev) * 100 if yesterday_rev else\
+          \ 0\n    \n    # 组合结果\n    result_str = f\"最新数据日期：{today}\\n今日总DAU：{today_dau}（环比昨日：{dau_mom:.2f}%）\\\
+          n今日总新增：{daily_data[today]['New_Users']}\\n今日总流水：{today_rev:.2f}元（环比昨日：{rev_mom:.2f}%）\\\
+          n\\n各渠道详细原始数据参考：\\n{csv_data}\"\n    \n    return {\"analyzed_result\":\
+          \ result_str}"
+        code_language: python3
+        outputs:
+          analyzed_result:
+            children: null
+            type: string
+        selected: false
+        title: 代码执行
+        type: code
+        variables:
+        - value_selector:
+          - '1774273392060'
+          - csv_data
+          value_type: string
+          variable: csv_data
+      height: 51
+      id: '1774273429562'
+      position:
+        x: 382
+        y: 282
+      positionAbsolute:
+        x: 382
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1774273429562'
+          - analyzed_result
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: gemini-2.5-flash
+          provider: langgenius/gemini/google
+        prompt_template:
+        - id: f429144d-4d3f-468f-86d9-0cc65e94b5c8
+          role: system
+          text: "{{#1774273429562.analyzed_result#}}\n 你是一位资深游戏运营数据分析师。你需要根据上方传入的【精准统计数据与原始清单】，撰写一份高质量的\
+            \ Markdown 格式《每日游戏运营简报》。\n\n### 你的任务要求\n1. **核心摘要提取**：首先用简短的一句话总结今日大盘表现。\n\
+            2. **核心指标看板**：使用 Markdown 表格呈现今日的 DAU、新增、流水，并明确写出环比涨跌幅。\n3. **渠道表现洞察**：分析原始数据，指出今日表现最优的渠道以及表现疲软的渠道。\n\
+            4. **智能异常预警**：\n   - 如果 DAU 或 流水环比下跌超过 10%，必须加上【红色预警】标签，并简述可能原因。\n   -\
+            \ 如果大幅上涨，请加上【增长亮点】标签。\n5. **次日运营建议**：结合上述分析，给出 2 条具体、可落地的运营动作建议。\n\n###\
+            \ 格式要求\n语气专业、精炼，多用数据说话。严禁捏造数据。"
+        selected: true
+        title: 'LLM '
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: '1774273928533'
+      position:
+        x: 688.5298639177602
+        y: 287.5212222379852
+      positionAbsolute:
+        x: 688.5298639177602
+        y: 287.5212222379852
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        outputs:
+        - value_selector:
+          - '1774273928533'
+          - text
+          value_type: string
+          variable: final_report_
+        selected: false
+        title: 输出
+        type: end
+      height: 88
+      id: '1774274643201'
+      position:
+        x: 1000.4909222245708
+        y: 276.65461317601006
+      positionAbsolute:
+        x: 1000.4909222245708
+        y: 276.65461317601006
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: -251.46279827873423
+      y: 38.401004060533865
+      zoom: 1.1043003324736145
+  rag_pipeline_variables: []
